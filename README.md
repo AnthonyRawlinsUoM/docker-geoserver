@@ -15,14 +15,14 @@ get our docker trusted build like this:
 
 
 ```shell
-docker pull kartoza/geoserver
+docker pull anthonyrawlinsuom/lfmc-geoserver
 ```
 
 To build the image yourself without apt-cacher-ng (also consumes more bandwidth
 since deb packages need to be refetched each time you build) do:
 
 ```shell
-docker build -t kartoza/geoserver git://github.com/kartoza/docker-geoserver
+docker build -t anthonyrawlinsuom/geoserver git://github.com/anthonyrawlinsuom/lfmc-geoserver
 ```
 
 To build with apt-cacher-ng (and minimised download requirements) do you need to
@@ -31,13 +31,13 @@ match your cacher host. Then build using a local url instead of directly from
 github.
 
 ```shell
-git clone git://github.com/kartoza/docker-geoserver
+git clone git://github.com/anthonyrawlinsuom/lfmc-geoserver
 ```
 
 Now edit ``71-apt-cacher-ng`` then do:
 
 ```shell
-docker build -t kartoza/geoserver .
+docker build -t anthonyrawlinsuom/lfmc-geoserver .
 ```
 
 ### Building with Oracle JDK
@@ -45,7 +45,7 @@ docker build -t kartoza/geoserver .
 To replace OpenJDK Java with the Oracle JDK, set build-arg `ORACLE_JDK=true`:
 
 ```shell
-docker build --build-arg ORACLE_JDK=true -t kartoza/geoserver .
+docker build --build-arg ORACLE_JDK=true -t anthonyrawlinsuom/lfmc-geoserver .
 ```
 
 Alternatively, you can download the Oracle JDK 7 Linux x64 tar.gz currently in use by
@@ -69,7 +69,7 @@ To remove Tomcat extras including docs, examples, and the manager webapp, set th
 `TOMCAT_EXTRAS` build-arg to `false`:
 
 ```shell
-docker build --build-arg TOMCAT_EXTRAS=false -t kartoza/geoserver .
+docker build --build-arg TOMCAT_EXTRAS=false -t anthonyrawlinsuom/lfmc-geoserver .
 ```
 
 ### Building with file system overlays (advanced)
@@ -89,8 +89,8 @@ You probably want to also have postgis running too. To create a running
 container do:
 
 ```shell
-docker run --name "postgis" -d -t kartoza/postgis:9.4-2.1
-docker run --name "geoserver"  --link postgis:postgis -p 8080:8080 -d -t kartoza/geoserver
+docker run --name "postgis" -d -t anthonyrawlinsuom/postgis:9.4-2.1
+docker run --name "geoserver"  --link postgis:postgis -p 8080:8080 -d -t anthonyrawlinsuom/geoserver
 ```
 
 You can also use the following environment variables to pass a 
@@ -116,7 +116,7 @@ Docker volumes can be used to persist your data.
 
 ```shell
 mkdir -p ~/geoserver_data
-docker run -d -v $HOME/geoserver_data:/opt/geoserver/data_dir kartoza/geoserver
+docker run -d -v $HOME/geoserver_data:/opt/geoserver/data_dir anthonyrawlinsuom/lfmc-geoserver
 ```
 
 You need to ensure the ``geoserver_data`` directory has sufficient permissions
@@ -134,11 +134,11 @@ JAVA_OPTS="$JAVA_OPTS -Djava.awt.headless=true -XX:+UseConcMarkSweepGC -XX:+CMSC
 Then pass the `setenv.sh` file as a volume at `/usr/local/tomcat/bin/setenv.sh` when running:
 
 ```shell
-docker run -d -v $HOME/setenv.sh:/usr/local/tomcat/bin/setenv.sh kartoza/geoserver
+docker run -d -v $HOME/setenv.sh:/usr/local/tomcat/bin/setenv.sh anthonyrawlinsuom/lfmc-geoserver
 ```
 
 ## Credits
 
-* Tim Sutton (tim@kartoza.com)
+* Tim Sutton (tim@anthonyrawlinsuom.com)
 * Shane St Clair (shane@axiomdatascience.com)
 * Alex Leith (alexgleith@gmail.com)
