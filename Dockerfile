@@ -1,6 +1,7 @@
 #--------- Generic stuff all our Dockerfiles should start with so we get caching ------------
 FROM tomcat:8.0-jre8
-MAINTAINER Tim Sutton<tim@linfiniti.com>
+# PREVIOUS MAINTAINER Tim Sutton<tim@linfiniti.com>
+MAINTAINER Anthony Rawlins<anthony.rawlins@unimelb.edu.au>
 
 RUN  export DEBIAN_FRONTEND=noninteractive
 ENV  DEBIAN_FRONTEND noninteractive

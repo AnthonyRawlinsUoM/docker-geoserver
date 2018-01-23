@@ -1,6 +1,6 @@
 resources/*
 !resources/plugins/
-resources/plugins/*
+!resources/plugins/*
 !resources/plugins/README.txt
 !resources/overlays/
 resources/overlays/*

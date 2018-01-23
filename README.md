@@ -89,7 +89,7 @@ You probably want to also have postgis running too. To create a running
 container do:
 
 ```shell
-docker run --name "postgis" -d -t anthonyrawlinsuom/postgis:9.4-2.1
+docker run --name "postgis" -d -t kartoza/postgis:9.4-2.1
 docker run --name "geoserver"  --link postgis:postgis -p 8080:8080 -d -t anthonyrawlinsuom/geoserver
 ```
 
