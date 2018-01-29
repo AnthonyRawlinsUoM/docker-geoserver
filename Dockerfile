@@ -61,6 +61,43 @@ RUN if ls /var/cache/oracle-jdk8-installer/*jdk-*-linux-x64.tar.gz > /dev/null 2
        fi; \
     fi;
 
+
+
+# Create a GDAL_DATA environment variable to the folder where you have extracted this file.
+# Make also sure that this directory is reachable and readable by the application server process’s user.
+ENV GDAL_DATA /opt/geoserver/gdal_data
+RUN mkdir -p $GDAL_DATA
+
+# The CRS definitions from gdal-data.zip
+# Extract this archive on disk and place it in a proper directory on your system.
+# https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/gdal-data.zip
+RUN if [ ! -f /tmp/resources/gdal-data.zip ]; then \
+    wget https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/gdal-data.zip -O /tmp/resources/gdal-data.zip; \
+    fi; \
+    mv /tmp/resources/gdal-data.zip ./ && \
+    unzip gdal-data.zip && \
+    mv gdal-data/* $GDAL_DATA && \
+    rm -r gdal-data
+
+
+ENV GDAL_DIR /opt/geoserver/gdal
+RUN mkdir -p $GDAL_DIR
+RUN mkdir ./gdal192
+
+# Download Binary gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz and move into place
+# https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/linux/gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz
+RUN if [ ! -f /tmp/resources/gdal-data.zip ]; then \
+    wget https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/linux/gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz -O /tmp/resources/gdal192.tar.gz; \
+    fi; \
+    mv /tmp/resources/gdal192.tar.gz ./gdal192 && \
+    gunzip -c ./gdal192/gdal192.tar.gz | tar xf - && \
+    mv ./gdal192/* $GDAL_DIR && \
+    rm -r ./gdal192
+
+
+
+
+
 #Add JAI and ImageIO for great speedy speed.
 WORKDIR /tmp
 # A little logic that will fetch the JAI and JAI ImageIO tar file if it
