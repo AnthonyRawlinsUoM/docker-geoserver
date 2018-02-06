@@ -17,7 +17,7 @@ RUN apt-get -y update
 
 #-------------Application Specific Stuff ----------------------------------------------------
 
-ENV GS_VERSION 2.9.1
+ENV GS_VERSION 2.12.1
 ENV GEOSERVER_DATA_DIR /opt/geoserver/data_dir
 
 RUN mkdir -p $GEOSERVER_DATA_DIR
@@ -61,45 +61,10 @@ RUN if ls /var/cache/oracle-jdk8-installer/*jdk-*-linux-x64.tar.gz > /dev/null 2
        fi; \
     fi;
 
-
-
-# Create a GDAL_DATA environment variable to the folder where you have extracted this file.
-# Make also sure that this directory is reachable and readable by the application server process’s user.
-ENV GDAL_DATA /opt/geoserver/gdal_data
-RUN mkdir -p $GDAL_DATA
-
-# The CRS definitions from gdal-data.zip
-# Extract this archive on disk and place it in a proper directory on your system.
-# https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/gdal-data.zip
-RUN if [ ! -f /tmp/resources/gdal-data.zip ]; then \
-    wget https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/gdal-data.zip -O /tmp/resources/gdal-data.zip; \
-    fi; \
-    mv /tmp/resources/gdal-data.zip ./ && \
-    unzip gdal-data.zip && \
-    mv gdal-data/* $GDAL_DATA && \
-    rm -r gdal-data
-
-
-ENV GDAL_DIR /opt/geoserver/gdal
-RUN mkdir -p $GDAL_DIR
-RUN mkdir ./gdal192
-
-# Download Binary gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz and move into place
-# https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/linux/gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz
-RUN if [ ! -f /tmp/resources/gdal-data.zip ]; then \
-    wget https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/linux/gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz -O /tmp/resources/gdal192.tar.gz; \
-    fi; \
-    mv /tmp/resources/gdal192.tar.gz ./gdal192 && \
-    gunzip -c ./gdal192/gdal192.tar.gz | tar xf - && \
-    mv ./gdal192/* $GDAL_DIR && \
-    rm -r ./gdal192
-
-
-
-
+WORKDIR /tmp
 
 #Add JAI and ImageIO for great speedy speed.
-WORKDIR /tmp
+
 # A little logic that will fetch the JAI and JAI ImageIO tar file if it
 # is not available locally in the resources dir
 RUN if [ ! -f /tmp/resources/jai-1_1_3-lib-linux-amd64.tar.gz ]; then \
@@ -122,8 +87,6 @@ RUN if [ ! -f /tmp/resources/jai-1_1_3-lib-linux-amd64.tar.gz ]; then \
     rm -r /tmp/jai_imageio-1_1
 WORKDIR $CATALINA_HOME
 
-# A little logic that will fetch the geoserver war zip file if it
-# is not available locally in the resources dir
 RUN if [ ! -f /tmp/resources/geoserver.zip ]; then \
     wget -c http://downloads.sourceforge.net/project/geoserver/GeoServer/${GS_VERSION}/geoserver-${GS_VERSION}-war.zip \
       -O /tmp/resources/geoserver.zip; \
@@ -148,6 +111,40 @@ RUN rm -f /tmp/resources/overlays/README.txt && \
       cp -rf /tmp/resources/overlays/* /; \
     fi;
 
+ENV GEOSERVER_HOME $CATALINA_HOME/webapps/geoserver
+# Create a GDAL_DATA environment variable to the folder where you have extracted this file.
+# Make also sure that this directory is reachable and readable by the application server process’s user.
+ENV GDAL_DATA /opt/gdal/gdal_data
+RUN mkdir /gdaldata
+RUN mkdir -p $GDAL_DATA
+
+ENV GDAL_DIR /opt/gdal
+RUN mkdir -p $GDAL_DIR
+RUN mkdir ./gdal192
+
+# Download Binary gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz and move into place
+# https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/linux/gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz
+RUN if [ ! -f /tmp/resources/gdal192.tar.gz ]; then \
+   wget https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/linux/gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz -O /tmp/resources/gdal192.tar.gz; \
+   fi; \
+   mv /tmp/resources/gdal192.tar.gz ./gdal192 && \
+   gunzip -c ./gdal192/gdal192.tar.gz | tar xf - && \
+   mv ./gdal192/* $GDAL_DIR && \
+   rm -r ./gdal192
+
+# The CRS definitions from gdal-data.zip
+# Extract this archive on disk and place it in a proper directory on your system.
+# https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/gdal-data.zip
+RUN if [ ! -f /tmp/resources/gdal-data.zip ]; then \
+   wget https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/gdal-data.zip -O /tmp/resources/gdal-data.zip; \
+   fi; \
+   mv /tmp/resources/gdal-data.zip /gdaldata && \
+   unzip /gdaldata/gdal-data.zip && \
+   mv /gdaldata/* $GDAL_DATA && \
+   rm -r /gdaldata
+
+
+
 # Optionally remove Tomcat manager, docs, and examples
 ARG TOMCAT_EXTRAS=true
 RUN if [ "$TOMCAT_EXTRAS" = false ]; then \
@@ -160,3 +157,7 @@ RUN if [ "$TOMCAT_EXTRAS" = false ]; then \
 
 # Delete resources after installation
 RUN rm -rf /tmp/resources
+
+RUN apt-get install -y nano
+
+# EXPOSE 8080
