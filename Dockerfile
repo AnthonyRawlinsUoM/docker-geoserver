@@ -13,7 +13,40 @@ RUN  dpkg-divert --local --rename --add /sbin/initctl
 # Or comment this line out if you do not with to use caching
 ADD 71-apt-cacher-ng /etc/apt/apt.conf.d/71-apt-cacher-ng
 
+# libc
+WORKDIR /
+RUN mkdir -p /work/libs
+
 RUN apt-get -y update
+RUN apt-get -y upgrade
+RUN wget http://security-cdn.debian.org/pool/updates/main/l/linux/linux-libc-dev_4.9.82-1+deb9u3_amd64.deb
+RUN dpkg -i linux-libc-dev_4.9.82-1+deb9u3_amd64.deb
+RUN apt-get install -y build-essential apt-utils m4 curl libcurl4-openssl-dev
+
+
+# zlib
+WORKDIR /
+RUN wget ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4/zlib-1.2.8.tar.gz
+RUN tar -zxvf zlib-1.2.8.tar.gz
+WORKDIR zlib-1.2.8
+RUN ./configure --prefix=/work/libs/nc4libs
+RUN make install
+
+# hdf5
+WORKDIR /
+RUN wget ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4/hdf5-1.8.13.tar.gz
+RUN tar -zxvf hdf5-1.8.13.tar.gz
+WORKDIR hdf5-1.8.13
+RUN ./configure --with-zlib=/work/libs/nc4libs --prefix=/work/libs/nc4libs --enable-threadsafe --with-pthread=/usr --enable-unsupported
+RUN make install
+
+# netcdf
+WORKDIR /
+RUN wget https://github.com/Unidata/netcdf-c/archive/v4.6.0.tar.gz
+RUN tar -zxvf v4.6.0.tar.gz
+WORKDIR netcdf-c-4.6.0
+RUN CPPFLAGS=-I/work/libs/nc4libs/include LDFLAGS=-L/work/libs/nc4libs/lib ./configure --prefix=/work/libs/nc4libs
+RUN make install
 
 #-------------Application Specific Stuff ----------------------------------------------------
 
@@ -143,7 +176,7 @@ RUN if [ ! -f /tmp/resources/gdal-data.zip ]; then \
    mv /gdaldata/* $GDAL_DATA && \
    rm -r /gdaldata
 
-
+ENV PATH "$PATH:/work/libs/nc4libs"
 
 # Optionally remove Tomcat manager, docs, and examples
 ARG TOMCAT_EXTRAS=true
@@ -160,4 +193,4 @@ RUN rm -rf /tmp/resources
 
 RUN apt-get install -y nano
 
-# EXPOSE 8080
+EXPOSE 8080
