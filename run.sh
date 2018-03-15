@@ -17,6 +17,6 @@ docker run \
 	--name=geoserver \
 	--link postgis:postgis \
         -v $DATA_DIR:/opt/geoserver/data_dir \
-	-p 8080:8080 \
+	-p 9090:8080 \
 	-d \
 	-t anthonyrawlinsuom/lfmc-geoserver
