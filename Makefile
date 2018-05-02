@@ -1,4 +1,4 @@
-all: pull
+all: build install pull
 
 build:
 	@docker build -t anthonyrawlinsuom/lfmc-geoserver .
