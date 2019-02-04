@@ -7,7 +7,7 @@ IMAGE=lfmc-geoserver
 git pull
 
 # bump version
-docker run --rm -v "$PWD":/app treeder/bump major
+docker run --rm -v "$PWD":/app treeder/bump release
 version=`cat VERSION`
 echo "version: $version"
 
