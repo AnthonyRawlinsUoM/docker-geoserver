@@ -12,6 +12,9 @@ install:
 	
 pull:
 	@docker pull anthonyrawlinsuom/lfmc-geoserver
-	
+
+release:
+	./release.sh
+
 clean:
 	@docker rmi --force anthonyrawlinsuom/lfmc-geoserver
