@@ -17,7 +17,7 @@ ADD 71-apt-cacher-ng /etc/apt/apt.conf.d/71-apt-cacher-ng
 #WORKDIR /
 
 RUN apt-get -y update
-RUN apt-get -y upgrade
+# RUN apt-get -y upgrade
 #RUN wget http://security-cdn.debian.org/pool/updates/main/l/linux/linux-libc-dev_4.9.82-1+deb9u3_amd64.deb
 #RUN dpkg -i linux-libc-dev_4.9.82-1+deb9u3_amd64.deb
 #RUN apt-get install -y build-essential apt-utils m4 curl libcurl4-openssl-dev
@@ -191,5 +191,7 @@ RUN if [ "$TOMCAT_EXTRAS" = false ]; then \
 RUN rm -rf /tmp/resources
 
 RUN apt-get install -y nano
+
+ENV TZ Australia/Melbourne
 
 EXPOSE 8080
