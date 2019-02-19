@@ -119,11 +119,11 @@ RUN if [ ! -f /tmp/resources/jai-1_1_3-lib-linux-amd64.tar.gz ]; then \
     rm -r /tmp/jai_imageio-1_1
 WORKDIR $CATALINA_HOME
 
-RUN if [ ! -f /tmp/resources/geoserver.zip ]; then \
+RUN if [ ! -f /tmp/resources/geoserver-${GS_VERSION}-war.zip ]; then \
     wget -c http://downloads.sourceforge.net/project/geoserver/GeoServer/${GS_VERSION}/geoserver-${GS_VERSION}-war.zip \
-      -O /tmp/resources/geoserver.zip; \
+      -O /tmp/resources/geoserver-${GS_VERSION}-war.zip; \
     fi; \
-    unzip /tmp/resources/geoserver.zip -d /tmp/geoserver \
+    unzip /tmp/resources/geoserver-${GS_VERSION}-war.zip -d /tmp/geoserver \
     && unzip /tmp/geoserver/geoserver.war -d $CATALINA_HOME/webapps/geoserver \
     && rm -rf $CATALINA_HOME/webapps/geoserver/data \
     && rm -rf /tmp/geoserver
@@ -155,9 +155,9 @@ RUN mkdir -p $GDAL_DIR
 RUN mkdir ./gdal192
 
 # Download Binary gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz and move into place
-# https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/linux/gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz
+# https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.28/native/gdal/linux/gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz
 RUN if [ ! -f /tmp/resources/gdal192.tar.gz ]; then \
-   wget https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/linux/gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz -O /tmp/resources/gdal192.tar.gz; \
+   wget https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.28/native/gdal/linux/gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz -O /tmp/resources/gdal192.tar.gz; \
    fi; \
    mv /tmp/resources/gdal192.tar.gz ./gdal192 && \
    gunzip -c ./gdal192/gdal192.tar.gz | tar xf - && \
@@ -166,9 +166,9 @@ RUN if [ ! -f /tmp/resources/gdal192.tar.gz ]; then \
 
 # The CRS definitions from gdal-data.zip
 # Extract this archive on disk and place it in a proper directory on your system.
-# https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/gdal-data.zip
+# https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.28/native/gdal/gdal-data.zip
 RUN if [ ! -f /tmp/resources/gdal-data.zip ]; then \
-   wget https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/gdal-data.zip -O /tmp/resources/gdal-data.zip; \
+   wget https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.28/native/gdal/gdal-data.zip -O /tmp/resources/gdal-data.zip; \
    fi; \
    mv /tmp/resources/gdal-data.zip /gdaldata && \
    unzip /gdaldata/gdal-data.zip && \
