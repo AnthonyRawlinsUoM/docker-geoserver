@@ -1,8 +1,8 @@
 all: build install pull
 
 stack:
-	@docker build --tag=128.250.160.167:5000/lfmc-geoserver .
-	@docker push 128.250.160.167:5000/lfmc-geoserver
+	@docker build --tag=anthonyrawlinsuom/lfmc-geoserver .
+	@docker push anthonyrawlinsuom/lfmc-geoserver
 		
 build:
 	@docker build -t anthonyrawlinsuom/lfmc-geoserver .
