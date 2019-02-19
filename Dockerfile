@@ -1,23 +1,53 @@
 #--------- Generic stuff all our Dockerfiles should start with so we get caching ------------
 FROM tomcat:8.0-jre8
-
 # PREVIOUS MAINTAINER Tim Sutton<tim@linfiniti.com>
 MAINTAINER Anthony Rawlins<anthony.rawlins@unimelb.edu.au>
 
 RUN  export DEBIAN_FRONTEND=noninteractive
 ENV  DEBIAN_FRONTEND noninteractive
 RUN  dpkg-divert --local --rename --add /sbin/initctl
+#RUN  ln -s /bin/true /sbin/initctl
 
 # Use local cached debs from host (saves your bandwidth!)
 # Change ip below to that of your apt-cacher-ng host
 # Or comment this line out if you do not with to use caching
 ADD 71-apt-cacher-ng /etc/apt/apt.conf.d/71-apt-cacher-ng
 
+# libc
+#WORKDIR /
+
 RUN apt-get -y update
+# RUN apt-get -y upgrade
+#RUN wget http://security-cdn.debian.org/pool/updates/main/l/linux/linux-libc-dev_4.9.82-1+deb9u3_amd64.deb
+#RUN dpkg -i linux-libc-dev_4.9.82-1+deb9u3_amd64.deb
+#RUN apt-get install -y build-essential apt-utils m4 curl libcurl4-openssl-dev
+
+
+# zlib
+#WORKDIR /
+#RUN wget ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4/zlib-1.2.8.tar.gz
+#RUN tar -zxvf zlib-1.2.8.tar.gz
+#WORKDIR zlib-1.2.8
+#RUN ./configure --prefix=/usr/local/libs/nc4libs
+#RUN make install
+
+# hdf5
+#WORKDIR /
+#RUN wget ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4/hdf5-1.8.13.tar.gz
+#RUN tar -zxvf hdf5-1.8.13.tar.gz
+#WORKDIR hdf5-1.8.13
+#RUN ./configure --with-zlib=/usr/local/libs/nc4libs --prefix=/usr/local/libs/nc4libs --enable-threadsafe --with-pthread=/usr --enable-unsupported
+#RUN make install
+
+# netcdf
+#WORKDIR /
+#RUN wget https://github.com/Unidata/netcdf-c/archive/v4.6.0.tar.gz
+#RUN tar -zxvf v4.6.0.tar.gz
+#WORKDIR netcdf-c-4.6.0
+#RUN CPPFLAGS=-I/usr/local/libs/nc4libs/include LDFLAGS=-L/usr/local/libs/nc4libs/lib ./configure --prefix=/usr/local/libs/nc4libs
+#RUN make install
 
 #-------------Application Specific Stuff ----------------------------------------------------
-
-#ENV GS_VERSION 2.12.1
 
 ENV GS_VERSION 2.14.2
 ENV GEOSERVER_DATA_DIR /opt/geoserver/data_dir
@@ -65,8 +95,6 @@ RUN if ls /var/cache/oracle-jdk8-installer/*jdk-*-linux-x64.tar.gz > /dev/null 2
 
 WORKDIR /tmp
 
-RUN apt-get install -y nano
-
 #Add JAI and ImageIO for great speedy speed.
 
 # A little logic that will fetch the JAI and JAI ImageIO tar file if it
@@ -89,7 +117,6 @@ RUN if [ ! -f /tmp/resources/jai-1_1_3-lib-linux-amd64.tar.gz ]; then \
     rm -r /tmp/jai-1_1_3 && \
     rm /tmp/jai_imageio-1_1-lib-linux-amd64.tar.gz && \
     rm -r /tmp/jai_imageio-1_1
-
 WORKDIR $CATALINA_HOME
 
 RUN if [ ! -f /tmp/resources/geoserver.zip ]; then \
@@ -100,56 +127,53 @@ RUN if [ ! -f /tmp/resources/geoserver.zip ]; then \
     && unzip /tmp/geoserver/geoserver.war -d $CATALINA_HOME/webapps/geoserver \
     && rm -rf $CATALINA_HOME/webapps/geoserver/data \
     && rm -rf /tmp/geoserver
-    
-ENV GEOSERVER_HOME $CATALINA_HOME/webapps/geoserver
-
-# RUN mkdir -p $GEOSERVER_HOME/WEB-INF/lib/
 
 # Install any plugin zip files in resources/plugins
 RUN if ls /tmp/resources/plugins/*.zip > /dev/null 2>&1; then \
       for p in /tmp/resources/plugins/*.zip; do \
         unzip $p -d /tmp/gs_plugin \
-        && mv /tmp/gs_plugin/*.jar $GEOSERVER_HOME/WEB-INF/lib/ \
+        && mv /tmp/gs_plugin/*.jar $CATALINA_HOME/webapps/geoserver/WEB-INF/lib/ \
         && rm -rf /tmp/gs_plugin; \
       done; \
     fi
 
 # Overlay files and directories in resources/overlays if they exist
 RUN rm -f /tmp/resources/overlays/README.txt && \
-   if ls /tmp/resources/overlays/* > /dev/null 2>&1; then \
-     cp -rf /tmp/resources/overlays/* /; \
-   fi;
+    if ls /tmp/resources/overlays/* > /dev/null 2>&1; then \
+      cp -rf /tmp/resources/overlays/* /; \
+    fi;
 
+ENV GEOSERVER_HOME $CATALINA_HOME/webapps/geoserver
 # Create a GDAL_DATA environment variable to the folder where you have extracted this file.
 # Make also sure that this directory is reachable and readable by the application server process’s user.
 ENV GDAL_DATA /opt/gdal/gdal_data
+RUN mkdir /gdaldata
 RUN mkdir -p $GDAL_DATA
-RUn mkdir /gdaldata
 
 ENV GDAL_DIR /opt/gdal
 RUN mkdir -p $GDAL_DIR
-RUN mkdir ./gdaltmp
+RUN mkdir ./gdal192
 
 # Download Binary gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz and move into place
-# https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.28/native/gdal/linux/gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz
+# https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/linux/gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz
 RUN if [ ! -f /tmp/resources/gdal192.tar.gz ]; then \
-  wget https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.28/native/gdal/linux/gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz -O /tmp/resources/gdal192.tar.gz; \
-  fi; \
-  mv /tmp/resources/gdal192.tar.gz ./gdaltmp && \
-  gunzip -c ./gdaltmp/gdal192.tar.gz | tar xf - && \
-  mv ./gdaltmp/* $GDAL_DIR && \
-  rm -r ./gdaltmp
+   wget https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/linux/gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz -O /tmp/resources/gdal192.tar.gz; \
+   fi; \
+   mv /tmp/resources/gdal192.tar.gz ./gdal192 && \
+   gunzip -c ./gdal192/gdal192.tar.gz | tar xf - && \
+   mv ./gdal192/* $GDAL_DIR && \
+   rm -r ./gdal192
 
 # The CRS definitions from gdal-data.zip
 # Extract this archive on disk and place it in a proper directory on your system.
-# https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.28/native/gdal/gdal-data.zip
+# https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/gdal-data.zip
 RUN if [ ! -f /tmp/resources/gdal-data.zip ]; then \
-  wget https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.28/native/gdal/gdal-data.zip -O /tmp/resources/gdal-data.zip; \
-  fi; \
-  mv /tmp/resources/gdal-data.zip /gdaldata && \
-  unzip /gdaldata/gdal-data.zip && \
-  mv /gdaldata/* $GDAL_DATA && \
-  rm -r /gdaldata
+   wget https://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/gdal-data.zip -O /tmp/resources/gdal-data.zip; \
+   fi; \
+   mv /tmp/resources/gdal-data.zip /gdaldata && \
+   unzip /gdaldata/gdal-data.zip && \
+   mv /gdaldata/* $GDAL_DATA && \
+   rm -r /gdaldata
 
 ENV PATH "$PATH:/opt/gdal"
 
@@ -166,6 +190,7 @@ RUN if [ "$TOMCAT_EXTRAS" = false ]; then \
 # Delete resources after installation
 RUN rm -rf /tmp/resources
 
+RUN apt-get install -y nano
 
 ENV TZ Australia/Melbourne
 
